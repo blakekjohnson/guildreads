@@ -21,6 +21,7 @@ async function execute(interaction) {
     const newGuild = new Guild({
       guildId,
       channelId,
+      lastCheck: Date.now(),
     });
     await newGuild.save();
   }

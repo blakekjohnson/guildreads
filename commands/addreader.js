@@ -51,7 +51,6 @@ async function execute(interaction) {
       userId,
       userName,
       guilds: [ interaction.guildId ],
-      lastCheck: Date.now(),
     });
     await newReader.save();
   }
