@@ -1,25 +1,12 @@
 import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { config } from 'dotenv';
+import mongoose from 'mongoose';
 
 import latest from './commands/latest.js';
 
+// Load env and create clients
 config();
-
 const client = new Client({ intents: [ GatewayIntentBits.Guilds ] });
-
-// Setup commands
-client.commands = {};
-client.commands[latest.data.name] = latest;
-const rest = new REST().setToken(process.env.DISCORD_TOKEN);
-(async () => {
-  const commands = Object.entries(client.commands)
-    .map(entry => entry[1].data.toJSON());
-
-  await rest.put(
-    Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
-    { body: commands },
-  );
-})();
 
 // Add command handling
 client.on(Events.InteractionCreate, async interaction => {
@@ -35,11 +22,29 @@ client.on(Events.InteractionCreate, async interaction => {
   await command.execute(interaction);
 });
 
-// Login the client
-client.login(process.env.DISCORD_TOKEN);
+// Startup the bot
+(async () => {
+  // Connect to database
+  await mongoose.connect(process.env.MONGO_CONNECT_STRING);
+  console.log('Connected to database');
 
-// Emit message when client is loaded
-client.once(Events.ClientReady, readyClient => {
-  console.log(`Logged in as ${readyClient.user.tag}`);
-});
+  // Register bot commands
+  client.commands = {};
+  client.commands[latest.data.name] = latest;
+  const rest = new REST().setToken(process.env.DISCORD_TOKEN);
+  const commands = Object.entries(client.commands)
+    .map(entry => entry[1].data.toJSON());
+  await rest.put(
+    Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
+    { body: commands },
+  );
+
+  // Login the client
+  client.login(process.env.DISCORD_TOKEN);
+
+  // Emit message when client is loaded
+  client.once(Events.ClientReady, readyClient => {
+    console.log(`Logged in as ${readyClient.user.tag}`);
+  });
+})();
 
