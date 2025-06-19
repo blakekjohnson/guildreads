@@ -6,6 +6,7 @@ import addreader from './commands/addreader.js';
 import latest from './commands/latest.js';
 import readerlist from './commands/readerlist.js';
 import removereader from './commands/removereader.js';
+import setchannel from './commands/setchannel.js';
 
 // Load env and create clients
 config();
@@ -37,6 +38,7 @@ client.on(Events.InteractionCreate, async interaction => {
   client.commands[latest.data.name] = latest;
   client.commands[readerlist.data.name] = readerlist;
   client.commands[removereader.data.name] = removereader;
+  client.commands[setchannel.data.name] = setchannel;
   const rest = new REST().setToken(process.env.DISCORD_TOKEN);
   const commands = Object.entries(client.commands)
     .map(entry => entry[1].data.toJSON());
