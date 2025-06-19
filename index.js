@@ -1,6 +1,7 @@
 import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { config } from 'dotenv';
 import mongoose from 'mongoose';
+import cron from 'node-cron';
 
 import addreader from './commands/addreader.js';
 import latest from './commands/latest.js';
@@ -8,6 +9,11 @@ import readerlist from './commands/readerlist.js';
 import removereader from './commands/removereader.js';
 import scan from './commands/scan.js';
 import setchannel from './commands/setchannel.js';
+
+import { Guild } from './models/guild.js';
+
+import { scanGuildReaderListForRecentlyReadBooks } from './util/scan.js';
+import { sendBookReadMessage } from './util/message.js';
 
 // Load env and create clients
 config();
@@ -52,9 +58,27 @@ client.on(Events.InteractionCreate, async interaction => {
   // Login the client
   client.login(process.env.DISCORD_TOKEN);
 
-  // Emit message when client is loaded
+  // Emit message when client is loaded and register job for scanning
   client.once(Events.ClientReady, readyClient => {
     console.log(`Logged in as ${readyClient.user.tag}`);
+
+    // Cron job for scanning all guild's with a subscribed channel
+    cron.schedule('16 * * * *', async () => {
+      const subscribedGuilds = await Guild.find({
+        channelId: { $exists: true },
+      }).exec();
+
+      for (let i = 0; i < subscribedGuilds.length; i++) {
+        const guild = subscribedGuilds[i];
+        const recentlyReadBooks = await
+          scanGuildReaderListForRecentlyReadBooks(guild.guildId);
+
+        for (let j = 0; j < recentlyReadBooks.length; j++) {
+          const bookReadMessage = recentlyReadBooks[j];
+          await sendBookReadMessage(client, guild.channelId, bookReadMessage);
+        }
+      }
+    });
   });
 })();
 
