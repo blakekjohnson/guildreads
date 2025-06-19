@@ -2,6 +2,7 @@ import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { config } from 'dotenv';
 import mongoose from 'mongoose';
 
+import addreader from './commands/addreader.js';
 import latest from './commands/latest.js';
 
 // Load env and create clients
@@ -31,6 +32,7 @@ client.on(Events.InteractionCreate, async interaction => {
   // Register bot commands
   client.commands = {};
   client.commands[latest.data.name] = latest;
+  client.commands[addreader.data.name] = addreader;
   const rest = new REST().setToken(process.env.DISCORD_TOKEN);
   const commands = Object.entries(client.commands)
     .map(entry => entry[1].data.toJSON());

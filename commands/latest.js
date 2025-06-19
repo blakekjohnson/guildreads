@@ -4,11 +4,11 @@ import { getReadBooksForUser } from '../util/scraper.js';
 
 const data = new SlashCommandBuilder()
   .setName('latest')
-  .setDescription('Get the latest update for a particular GoodReads user')
+  .setDescription('Get the latest update for a particular reader')
   .addStringOption(option =>
     option
       .setName('userid')
-      .setDescription('The userId for GoodReads user')
+      .setDescription('The userId for the reader')
       .setRequired(true));
 
 async function execute(interaction) {
