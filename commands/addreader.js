@@ -34,7 +34,6 @@ async function execute(interaction) {
   const existingReader = await Reader.findOne({ userId });
   // If reader exists, add the new guild to their entry
   if (existingReader !== null) {
-    console.log(existingReader);
     if (existingReader.guilds.includes(interaction.guildId)) {
       await interaction.reply({
         content: `${readBooks.userName} is already in this guild's reader list`,

@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import addreader from './commands/addreader.js';
 import latest from './commands/latest.js';
 import readerlist from './commands/readerlist.js';
+import removereader from './commands/removereader.js';
 
 // Load env and create clients
 config();
@@ -35,6 +36,7 @@ client.on(Events.InteractionCreate, async interaction => {
   client.commands[addreader.data.name] = addreader;
   client.commands[latest.data.name] = latest;
   client.commands[readerlist.data.name] = readerlist;
+  client.commands[removereader.data.name] = removereader;
   const rest = new REST().setToken(process.env.DISCORD_TOKEN);
   const commands = Object.entries(client.commands)
     .map(entry => entry[1].data.toJSON());
