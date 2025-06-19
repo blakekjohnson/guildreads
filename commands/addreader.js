@@ -15,8 +15,9 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
   const userId = interaction.options.getString('userid');
   const readBooks = await getReadBooksForUser(userId);
+  const { userName } = readBooks;
 
-  if (!readBooks.userName) {
+  if (!userName) {
     await interaction.reply({
       content: `No reader found for userId ${userId}`,
       flags: MessageFlags.Ephemeral,
@@ -49,6 +50,7 @@ async function execute(interaction) {
   else {
     const newReader = new Reader({
       userId,
+      userName,
       guilds: [ interaction.guildId ],
       lastCheck: Date.now(),
     });
