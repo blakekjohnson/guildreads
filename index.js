@@ -1,5 +1,6 @@
 import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { config } from 'dotenv';
+import express from 'express';
 import mongoose from 'mongoose';
 import cron from 'node-cron';
 
@@ -35,6 +36,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // Startup the bot
 (async () => {
+  // Setup dummy express server for DigitalOcean health checks
+  const server = express();
+  server.listen(80, () => {
+    console.log('Health check server open on port 80');
+  });
+
   // Connect to database
   await mongoose.connect(process.env.MONGO_CONNECT_STRING);
   console.log('Connected to database');
