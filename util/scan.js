@@ -63,11 +63,14 @@ async function scanGuildReaderListForRecentlyReadBooks(guildId) {
       }
 
       // Update the last read timestamp for the user
-      reader.lastReadTimestamp = userRecentlyReadBooks
+      const newLastReadTimestamp = userRecentlyReadBooks
         .map(bookEntry => bookEntry.book.readTimestamp)
         .sort((a, b) => b - a)[0];
-      reader.markModified('lastReadTimestamp');
-      await reader.save();
+      if (newLastReadTimestamp) {
+        reader.lastReadTimestamp = newLastReadTimestamp;
+        reader.markModified('lastReadTimestamp');
+        await reader.save();
+      }
     }
   }
 
