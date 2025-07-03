@@ -38,8 +38,8 @@ client.on(Events.InteractionCreate, async interaction => {
 (async () => {
   // Setup dummy express server for DigitalOcean health checks
   const server = express();
-  server.listen(80, () => {
-    console.log('Health check server open on port 80');
+  server.listen(8080, () => {
+    console.log('Health check server open on port 8080');
   });
 
   // Connect to database
