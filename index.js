@@ -77,12 +77,18 @@ client.on(Events.InteractionCreate, async interaction => {
 
       for (let i = 0; i < subscribedGuilds.length; i++) {
         const guild = subscribedGuilds[i];
-        const recentlyReadBooks = await
+        const channelUpdates = await
           scanGuildReaderListForRecentlyReadBooks(guild.guildId);
 
-        for (let j = 0; j < recentlyReadBooks.length; j++) {
-          const bookReadMessage = recentlyReadBooks[j];
-          await sendBookReadMessage(client, guild.channelId, bookReadMessage);
+        const keys = Object.keys(channelUpdates);
+        for (let i = 0; i < keys.length; i++) {
+          const channelId = keys[i];
+          const bookMessages = channelUpdates[channelId];
+
+          for (let i = 0; i < bookMessages.length; i++) {
+            const bookMessage = bookMessages[i];
+            await sendBookReadMessage(interaction.client, channelId, bookMessage);
+          }
         }
       }
     });

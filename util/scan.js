@@ -12,34 +12,66 @@ async function scanGuildReaderListForRecentlyReadBooks(guildId) {
     });
     await guild.save();
   }
-  const lastCheck = guild.lastCheck || Date.now();
 
   const readerList = await Reader.find({ guilds: guildId });
-  let recentlyReadBooks = [];
+  const channelUpdates = {};
   for (let i = 0; i < readerList.length; i++) {
     const reader = readerList[i];
     const userReadBooks = await getReadBooksForUser(reader.userId);
     const userRecentlyReadBooks = userReadBooks
       .books
-      .filter(readBook => readBook.readTimestamp >= lastCheck)
+      .sort((a, b) => b.readTimestamp - a.readTimestamp)
+      .filter(readBook => {
+        if (reader.lastReadTimestamp) {
+          return readBook.readTimestamp > reader.lastReadTimestamp;
+        }
+
+        return true;
+      })
       .map(readBook => {
         return {
           userName: reader.userName,
           book: readBook,
         }
+      })
+      .filter((_, index) => {
+        if (!reader.lastReadTimestamp) {
+          return index == 0;
+        }
+
+        return true;
       });
 
-    recentlyReadBooks = [ ...userRecentlyReadBooks, ...recentlyReadBooks ];
+    if (userRecentlyReadBooks.length > 0) {
+      // Get the guilds the reader is in
+      const guilds = await Guild.find({ guildId: { $in: reader.guilds } });
+      const channels = guilds
+        .filter(guild => guild.channelId)
+        .map(guild => guild.channelId);
+
+      // Update each channelId with it's updates
+      for (let i = 0; i < channels.length; i++) {
+        const channel = channels[i];
+        if (channelUpdates[channel]) {
+          channelUpdates[channel] = [
+            ...channelUpdates[channel],
+            userRecentlyReadBooks
+          ];
+        } else {
+          channelUpdates[channel] = userRecentlyReadBooks;
+        }
+      }
+
+      // Update the last read timestamp for the user
+      reader.lastReadTimestamp = userRecentlyReadBooks
+        .map(bookEntry => bookEntry.book.readTimestamp)
+        .sort((a, b) => b - a)[0];
+      reader.markModified('lastReadTimestamp');
+      await reader.save();
+    }
   }
 
-  const sortedRecentlyReadBooks = recentlyReadBooks
-    .sort((a, b) => a - b);
-
-  guild.lastCheck = Date.now();
-  guild.markModified('lastCheck');
-  await guild.save();
-
-  return sortedRecentlyReadBooks;
+  return channelUpdates;
 }
 
 export {

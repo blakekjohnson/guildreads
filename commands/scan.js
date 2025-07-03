@@ -1,7 +1,5 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 
-import { Guild } from '../models/guild.js';
-
 import { sendBookReadMessage } from '../util/message.js';
 import { scanGuildReaderListForRecentlyReadBooks } from '../util/scan.js';
 
@@ -11,34 +9,30 @@ const data = new SlashCommandBuilder()
 
 async function execute(interaction) {
   const { guildId } = interaction;
-  const guild = await Guild.findOne({ guildId });
-  const recentlyReadBooks = await
+  const channelUpdates = await
     scanGuildReaderListForRecentlyReadBooks(guildId);
 
-  if (recentlyReadBooks.length <= 0) {
+  if (Object.keys(channelUpdates).length <= 0) {
     return await interaction.reply({
       content: 'No recently read books for this guild\'s reader list',
       flags: MessageFlags.Ephemeral,
     });
   }
 
-  let channelId = interaction.channelId;
-  if (guild && guild.channelId) {
-    channelId = guild.channelId;
-    await interaction.reply({
-      content: 'Sending recently read books to this guild\'s reader list channel',
-      flags: MessageFlags.Ephemeral,
-    });
-  } else {
-    await interaction.reply({
-      content: 'Sending recently read books for this guild\'s reader list',
-      flags: MessageFlags.Ephemeral,
-    });
-  }
+  await interaction.reply({
+    content: 'Finished scanning this guild\'s reader list',
+    flags: MessageFlags.Ephemeral,
+  });
 
-  for (let i = 0; i < recentlyReadBooks.length; i++) {
-    const bookReadMessage = recentlyReadBooks[i];
-    await sendBookReadMessage(interaction.client, channelId, bookReadMessage);
+  const keys = Object.keys(channelUpdates);
+  for (let i = 0; i < keys.length; i++) {
+    const channelId = keys[i];
+    const bookMessages = channelUpdates[channelId];
+
+    for (let i = 0; i < bookMessages.length; i++) {
+      const bookMessage = bookMessages[i];
+      await sendBookReadMessage(interaction.client, channelId, bookMessage);
+    }
   }
 }
 
