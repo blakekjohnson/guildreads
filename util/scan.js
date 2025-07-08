@@ -22,6 +22,9 @@ async function scanGuildReaderListForRecentlyReadBooks(guildId) {
       .books
       .sort((a, b) => b.readTimestamp - a.readTimestamp)
       .filter(readBook => {
+        return readBook.readTimestamp instanceof Date && !isNaN(readBook.readTimestamp);
+      })
+      .filter(readBook => {
         if (reader.lastReadTimestamp) {
           return readBook.readTimestamp > reader.lastReadTimestamp;
         }
