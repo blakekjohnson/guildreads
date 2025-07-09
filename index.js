@@ -87,7 +87,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
           for (let i = 0; i < bookMessages.length; i++) {
             const bookMessage = bookMessages[i];
-            await sendBookReadMessage(interaction.client, channelId, bookMessage);
+            await sendBookReadMessage(client, channelId, bookMessage);
           }
         }
       }
